@@ -10,4 +10,4 @@ shell379.o: shell379.cpp
 	$(CC) shell379.cpp -o shell379.o -c $(CFLAGS)
 
 clean:
-	@rm -f *.o shell379 tester
+	@rm -f *.o shell379
