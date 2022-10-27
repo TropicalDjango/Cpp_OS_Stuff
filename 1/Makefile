@@ -1,13 +1,28 @@
 CC = @g++
-CFlAGS = -g -pedantic -static
+# I'm not sure if I need to remove -g or not
+CFLAGS = -g -pedantic -static -I.
+HEADERS = shell379.h
+DEPS = shell379.o
 
-all: shell379
+# all .o files are dependant on all .cpp files
+# and all .h
+#
+%.o: %.cpp %.h
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-shell379: shell379.o
-	$(CC) shell379.o -o shell379 $(CFLAGS)
-	
-shell379.o: shell379.cpp
-	$(CC) shell379.cpp -o shell379.o -c $(CFLAGS)
+# goto $.o for .o files
+
+all: $(DEPS) 
+	$(CC) $(DEPS) -o shell379 $(CFLAGS)
 
 clean:
 	@rm -f *.o shell379
+	@clear
+
+# This is for testing, I'm keeping it here for later
+# incase I forget
+
+test:
+	@ make
+	@ ./prodcon 3 1 < input.txt
+	@ cat prodcon.1.log
