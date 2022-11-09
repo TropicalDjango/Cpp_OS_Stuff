@@ -26,10 +26,10 @@ void summary() {
 
     std::cout << "Summary:" << std::endl;
     std::cout << "    " << "Work" << "             " << info.work << std::endl;
-    std::cout << "    " << "Ask" << "              " << info.work << std::endl;
-    std::cout << "    " << "Receive" << "          " << info.work << std::endl;
-    std::cout << "    " << "Complete" << "         " << info.work << std::endl;
-    std::cout << "    " << "Sleep" << "            " << info.work << std::endl;
+    std::cout << "    " << "Ask" << "              " << info.ask << std::endl;
+    std::cout << "    " << "Receive" << "          " << info.receive << std::endl;
+    std::cout << "    " << "Complete" << "         " << info.complete << std::endl;
+    std::cout << "    " << "Sleep" << "            " << info.sleep << std::endl;
     for(int i = 0; i < info.threads; i++) 
     {
         std::cout << "    " << "Thread " << (i+1) << "         "; 
