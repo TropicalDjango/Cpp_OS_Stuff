@@ -1,0 +1,27 @@
+." This is the manual page for the server
+.TH server 7 "Nov 2022" "version 1.0" 
+
+
+." This is the name section
+.SH NAME
+server - the server side for Assignment 3 of CMPUT 379 - Fall 2022
+.SH SYNOPSIS
+.B server [port]
+.PP
+.B port 
+is the port mumber to listen on
+
+
+." This is the description section
+.SH DESCRIPTION
+.B server
+runs a server that listens on the specified port number for clients 
+to connect, creates a seperate thread for each new client, and executes the
+client commands.
+
+." This is the note section
+.PP
+Note however that
+.B server "(1) has a timeout feature 
+in that if a client does not connect after a certain period of time, the program will exit without warning. It also requires seperate clients in order to run properly so clients need to be made prior to making the server.
+

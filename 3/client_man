@@ -1,0 +1,35 @@
+." This is the manual page for the server
+.TH client 7 "Nov 2022" "version 1.0" 
+
+
+." This is the name section
+.SH NAME
+client - the client side for Assignment 3 of CMPUT 379 - Fall 2022
+
+." This is the command breakdown section
+.SH SYNOPSIS
+.B client [port] [ip-address]
+
+.PP
+.I port 
+is the port mumber to connect with
+
+.PP
+.I ip-address
+is the ip address that the client will connect to which is where the server is
+located
+
+." This is the description section
+.SH DESCRIPTION
+.B client
+reads input from stdin as a sequence of T<n> & S<N> commands, connects to the
+port number at the specfied ip address, and sends those commands to that port
+for the server to listen to.
+
+." This is the note section
+.PP
+Note however that
+.B client "(1) autoexits when input stops 
+in that if a client does not recieve input within a certain timeframe, it will
+exit automatically and without warning
+
