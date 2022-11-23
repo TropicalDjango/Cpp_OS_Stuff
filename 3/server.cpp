@@ -1,4 +1,4 @@
-#include <string>
+#include <string.h>
 #include <sstream>
 #include <iostream>
 #include <stdio.h>
@@ -13,26 +13,38 @@
 #include <netdb.h>
 #include <libgen.h>
 #include <unistd.h>
+#include <poll.h>
+
+#include <sys/time.h>
+#include <sys/types.h>
 
 #define BUFFER_SIZE 1024
+#define MAX_CLIENT 8
 
 int port;
+int trans_n = 1;
+bool exit_cond = false;
+int client_fd[MAX_CLIENT];
+int client_n = 0;
 
+// void server_listen(void * ls);
+// void server_service();
 
 void server() {
-    int server_fd, socket, valread;
+    int valread;
     struct sockaddr_in address;
 
     int op = 1;
     int addrlen = sizeof(address);
     char buffer[BUFFER_SIZE] = {0};
-
-    if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    
+    // this is to create a socket
+    if((client_fd[client_n] = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
-
-    if( (setsockopt(server_fd, SOL_SOCKET, 
+    // This is too prevent error "address already in use"
+    if( (setsockopt(client_fd[client_n], SOL_SOCKET, 
                     SO_REUSEADDR | SO_REUSEPORT, 
                     &op, sizeof(op))) ) {
         perror("setsockopt failed");
@@ -40,8 +52,21 @@ void server() {
     }
 
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_addr.s_addr = inet_addr("127.0.0.1");
     address.sin_port = htons(port);
+
+    if(bind(client_fd[client_n], (struct sockaddr*)&address, 
+                sizeof(address)) < 0 ) {
+        perror("bind fail");
+        exit(EXIT_FAILURE);
+    }
+
+    while(1) 
+    {
+        // wait(30s)
+        // exit = true;
+    }
+
 }
 
 int main(int argc, char** argv) {
@@ -53,6 +78,6 @@ int main(int argc, char** argv) {
             perror("Incorrect port value, must be between 5000 and 64000");
         }
     } else {
-
+        perror("Need to specify port");
     }
 }
