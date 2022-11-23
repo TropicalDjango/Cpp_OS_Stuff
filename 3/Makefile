@@ -1,22 +1,23 @@
 CC = @g++
 # I'm not sure if I need to remove -g or not
-CFLAGS = -g -pedantic -static -pthread -I.
-HEADERS = threader.h consumer.h producer.h tands.h extern.h
-DEPS = threader.o consumer.o producer.o tands.o
+CFLAGS = -O -pedantic -static -pthread -I.
+HEADERS = server.h client.h tands.h
+DEPS = server.o client.o
 
 # all .o files are dependant on all .cpp files
 # and all .h
-#
 %.o: %.cpp %.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 # goto $.o for .o files
 
-all: $(DEPS) 
-	$(CC) $(DEPS) -o prodcon $(CFLAGS)
+client: $(DEPS) 
+	$(CC) client.o -o client $(CFLAGS)
 
+server: $(DEPS)
+	$(CC) server.o -o server $(CFLAGS)
 clean:
-	@rm -f *.o prodcon *.log
+	@rm -f *.o client server *.log
 	@clear
 
 # This is for testing, I'm keeping it here for later

@@ -18,14 +18,23 @@ int PORT;
 char* ip_add;
 char* hostname;
 int pid = getpid();
+int transaction = 0;
 
-void client_log() 
+void client_log(char cmd, int n) 
 {
-    
+    time_t epox = time(nullptr);
+    cout << epox << ": ";
+    if(cmd == 'D') {
+        cout << "Recv " << "(" << 
+                "D  "<< to_string(n) << ")" << endl;  
+    } else {
+         cout << "Send " << "(" << 
+                "T  "<< to_string(n) << ")" << endl;  
+    }
 }
 
 void client() {
-    int sock = 0, valread, sock_fd;
+    int sock = 0, sock_fd;
     struct sockaddr_in saddr;
     char buffer[MAX_BUFFER_SIZE];
     if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -45,19 +54,29 @@ void client() {
         perror("connect");
         exit(EXIT_FAILURE);
     }
-    while(true) 
+    while(cin.getline(buffer, MAX_BUFFER_SIZE)) 
     {
-        cin.getline(buffer, MAX_BUFFER_SIZE);
+        int cmd_n;
         if(buffer[0] == 'T') {
+            cmd_n = buffer[1] - '0';
+            client_log(buffer[0], cmd_n);
             // send command to server
             send(sock, buffer, MAX_BUFFER_SIZE, 0);
+            transaction++;
             // read D<n> from server
-            valread = read(sock, buffer, MAX_BUFFER_SIZE);
+            read(sock, buffer, MAX_BUFFER_SIZE);
+            cmd_n = buffer[1]-'0';
+            client_log(buffer[0], cmd_n);
+
         } else if(buffer[0] == 'S') {
-            Sleep(buffer[1]);
+            cmd_n = buffer[1]-'0';
+            cout << "Sleep " << buffer[1] << "units" << endl;
+            Sleep(cmd_n);
         }
-        
     }
+    char trans = transaction - '0';
+    cout << "Sent " << trans << " Transactions";
+    _exit(0);
 }
 
 int main(int argc, char** argv) {
@@ -74,7 +93,7 @@ int main(int argc, char** argv) {
         if(PORT >= 5000 || PORT <= 64000) {
             client();
         } else {
-            perror("Incorrect port value, must be between 5000 and 64000");
+            perror("Incorrect port value");
         }
     } else {
         perror("Need to specify port");
