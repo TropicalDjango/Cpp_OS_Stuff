@@ -11,7 +11,7 @@ server: server.cpp $(HEADER)
 
 clean:
 	@rm -f *.o client server *.log
-	@find . -name '*[[:digit:]]*' | xargs rm
+	@find . -name '*.[[:digit:]]*' | xargs rm
 	@clear
 
 # This is for testing, I'm keeping it here for later

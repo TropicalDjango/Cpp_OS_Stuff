@@ -1,11 +1,6 @@
-[33m./379A3
-│
-[31m└──client_man
-[31m└──tands.cpp
-[31m└──server.pdf
-[31m└──Makefile
-[31m└──tands.h
-[31m└──server_man
-[31m└──client.cpp
-[31m└──README.md
-[31m└──server.cpp
+# CMPUT 379 Assignment 3: Server-client
+
+## Notes:
+
+In the makefile the clean target will remove any file with a '.' followed by a 
+digit. This is done to clean up the directory of logfiles.
