@@ -21,49 +21,62 @@
 
 #include "tands.h"
 
-#define BUFFER_SIZE 2
+#define BUFFER_SIZE 4
 #define MAX_CLIENTS 10
 #define MAX_HOSTNAME 20
 using namespace std;
 
 int port;
-int trans_n = 1;
-bool exit_cond = false, print = true;
-int pid = getpid();
-char client_name[MAX_CLIENTS][MAX_HOSTNAME];
-int trans_client[MAX_CLIENTS];
 
-time_t start_time = clock_t();
+// number of transactions
+int trans_n = 0;
+
+// if the output of server true goes to terminal, false to log file
+const bool print = false;
+const int pid = getpid();
+const clock_t start_time = clock();
+
+// names for each client
+char client_name[MAX_CLIENTS][MAX_HOSTNAME];
+
+// transactions for each client
+int trans_client[MAX_CLIENTS];
 
 
 void server_end()
 {
-    auto lifetime = (clock_t() - start_time)/(double)CLOCKS_PER_SEC;
+    clock_t stop_time = clock();
+    double lifetime = double(stop_time - start_time)/CLOCKS_PER_SEC;
+
     cout << "SUMMARY" << endl;
-    for(int ii; ii < MAX_CLIENTS; ii++)
+
+    for(int ii = 0; 
+        ii < MAX_CLIENTS && client_name[ii][0] != '\0'; 
+        ii++)
     {
-        cout << "   " << trans_client[ii] << " transactions";
-        cout << " from " << client_name[ii] << endl;
+        cout << "   " << trans_client[ii] << " transactions"
+             << " from " << client_name[ii] << endl;
     }
 
-    int avg_trans = trans_n/lifetime;
-    cout << fixed << setprecision(2);
+    double avg_trans = trans_n/lifetime;
     
-    cout << avg_trans << " transactions/sec ("; 
-    cout << trans_n << "/" << lifetime << ")";
-    _exit(0);
+    cout << fixed << setprecision(2) 
+         << avg_trans << " transactions/sec ("
+         << trans_n << "/" << lifetime << ")" << endl;
 }
 
 
 
 void server_log(char cmd, int n, int client_index) 
 {
-    time_t epox = time(nullptr);
+    auto epox = time(nullptr);
+    
     cout << epox << ": #  " << trans_n << " (";
+    
     if(cmd == 'D') {
         cout << "DONE) ";
     } else if(cmd == 'T') {
-        cout << "T " << trans_n << ") ";
+        cout << "T  " << n << ") ";
     }
     cout << "from " << client_name[client_index] << endl;
 }
@@ -71,27 +84,28 @@ void server_log(char cmd, int n, int client_index)
 void sservice(int server_fd, int* client_socket, int addrlen,
               struct timeval timeout, struct sockaddr_in address) 
 {
-    int valread;
-    char buffer[BUFFER_SIZE];
-   
     while(1) 
     {
         fd_set rfds;
+        
         // clear fd set
         FD_ZERO(&rfds);
+        
         // add server socket to set
         FD_SET(server_fd, &rfds);
-        fcntl(server_fd, O_NONBLOCK);
+        int max_sock = server_fd;
+        
         // add clients sockets to set
-        for(int ii; ii < MAX_CLIENTS; ii++) 
+        for(int ii = 0; ii < MAX_CLIENTS; ii++) 
         {
             if(client_socket[ii] > 0)
                 FD_SET(client_socket[ii], &rfds);
-            if(client_socket[ii] > server_fd)
-                server_fd = client_socket[ii];
+
+            if(client_socket[ii] > max_sock)
+                max_sock = client_socket[ii];
         }
         // wait for changes in any of the sockets
-        int file_stat = select(server_fd + 1, 
+        int file_stat = select(max_sock + 1, 
                                 &rfds, NULL, NULL, &timeout);
         switch(file_stat) 
         {
@@ -105,11 +119,12 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                     close(client_socket[ii]);
                 }
                 server_end();
+                return;
             }
             // Error
             case(-1):
             {
-                perror("STATUS");
+                perror("select error");
                 break;
             }
             // activity on a socket
@@ -118,7 +133,8 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                 // server socket activity (i.e connection request)
                 if(FD_ISSET(server_fd, &rfds)) 
                 {
-                    int new_socket;
+                    int new_socket = 0;
+                    // Connection to socket failed
                     if((new_socket = accept(server_fd,
                                     (struct sockaddr *)&address, 
                                     (socklen_t *)&addrlen)) < 0) 
@@ -135,18 +151,23 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                             // get clientname and add to client_name[][]
                             read(new_socket, client_name[ii], 
                                     MAX_HOSTNAME);
+                            cout << client_name[ii] << endl;
+                            break;
                         }
-                        break;
                     }
                 }
                 // client socket activity
                 for(int ii = 0; ii < MAX_CLIENTS; ii++)
                 {
+                    
+                    char cmd;
+                    int cmd_n = 0;
                     if(FD_ISSET(client_socket[ii], &rfds))
                     {
                         // client disconnected
-                        if((valread = read(client_socket[ii], 
-                                          buffer, BUFFER_SIZE)) == 0)
+                        int cmd_read;
+                        if((cmd_read = read(client_socket[ii], 
+                                       &cmd, sizeof(char)) == 0))
                         {
                             // get client name
                             getpeername(client_socket[ii], 
@@ -155,23 +176,26 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                             // close client socket
                             close(client_socket[ii]);
                             client_socket[ii] = 0;
+                            cout << "Client " << client_name[ii] 
+                                 << " has disconnected" << endl;
                         }
                         // client message
                         else 
                         {
-                            char cmd = buffer[0];
-                            int cmd_n = buffer[1] - '0';
+
+                            read(client_socket[ii], &cmd_n, sizeof(int));
+                            trans_n++;
                             server_log(cmd, cmd_n, ii);
+
                             if(cmd == 'T') {
                                 Trans(cmd_n);
                                 trans_client[ii]++;
                                 trans_n++;
                             }
-                            std::string msg = "D" + 
-                                            std::to_string(trans_n); 
-                            server_log('D',cmd_n,ii);
+                            server_log('D',trans_n,ii);
                             send(client_socket[ii], 
-                                 &msg, sizeof(msg), 0);
+                                 &trans_n, sizeof(trans_n), 0);
+                            // FD_ZERO(&rfds);
                         }
                     }
                 }
@@ -212,7 +236,7 @@ void server() {
     
     // Setting up the timeout for 30 seconds
     struct timeval timeout;
-    timeout.tv_sec = 30;
+    timeout.tv_sec = 10;
     timeout.tv_usec = 0;
     
     // Binding socket to address
