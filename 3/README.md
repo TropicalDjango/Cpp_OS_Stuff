@@ -14,7 +14,11 @@ made pdfs using
 
 ## Credit
 
-used this geeksforgeeks article to understand how status worked "Socket
-Programming in C/C++: Handling multiple client on server without multi threading"
-by www.geeksforgeeks.org
+### For status() useage and server-side code 
+Sinha, Akshat. “Socket Programming in C/C++: Handling Multiple Clients on Server without Multi Threading.” GeeksforGeeks, June 28, 2022. Accessed November 24, 2022. https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading/. 
 
+### For man-page writing 
+Rodriguez, Harold. “Creating Your Own Man Page Version 1.0.” Linux Howtos: System -&gt; Creating Your Own MAN Page. Accessed November 24, 2022. https://www.linuxhowtos.org/System/creatingman.htm. 
+
+### Turning the man pages to pdf was alot harder than I thought
+Hoskins, Asher. “Is There a Way to Print Info/Man Pages to PDF?” StackExchange, October 6, 2017. Accessed November 24, 2022. https://askubuntu.com/questions/962558/is-there-a-way-to-print-info-man-pages-to-pdf.
