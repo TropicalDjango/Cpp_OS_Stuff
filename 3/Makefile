@@ -1,5 +1,5 @@
 CC = @g++
-CFLAGS = -g -pedantic -static -pthread -I.
+CFLAGS = -O -pedantic -static -pthread -I.
 HEADER = tands.h
 DEPS = server.o client.o
 
