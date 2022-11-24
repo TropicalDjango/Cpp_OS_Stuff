@@ -4,3 +4,6 @@
 
 In the makefile the clean target will remove any file with a '.' followed by a 
 digit. This is done to clean up the directory of logfiles.
+
+made pdfs using
+### `man -Tps server | ps2pdf - server.pdf`
