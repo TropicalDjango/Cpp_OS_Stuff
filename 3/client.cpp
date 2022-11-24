@@ -11,12 +11,17 @@
 #include "tands.h"
 
 #define MAX_BUFFER_SIZE 4
+#define MAX_NAME 14
 #define MAX_HOSTNAME 20
+#define MAX_PID 6
+
 using namespace std;
 
 int PORT;
 char* ip_add;
+char name[MAX_NAME];
 char hostname[MAX_HOSTNAME];
+
 int pid = getpid();
 int transaction = 0;
 bool print = false;
@@ -98,15 +103,24 @@ int main(int argc, char** argv) {
     if(argc > 2) {
         PORT = atoi(argv[1]);
         ip_add = argv[2];
-        gethostname(hostname, MAX_HOSTNAME);
+        gethostname(name, MAX_NAME);
+        // Save cout buf to restore before leaving program
+        // std::streambuf* coutbuf = cout.rdbuf();
+        
         if(!print) {
+            const char period = '.';
+
+            strcat(hostname,name);
+            strcat(hostname,&period);
+            strcat(hostname,to_string(pid).c_str());
+            
             // redirect output to logfile
-            std::ofstream out(hostname + '.' + to_string(pid)); 
-            // std::streambuf* coutbuf = std::cout.rdbuf();
-            std::cout.rdbuf(out.rdbuf());
+            ofstream out(hostname); 
+            cout.rdbuf(out.rdbuf());
         }
         if(PORT >= 5000 || PORT <= 64000) {
             client();
+            // cout.rdbuf(coutbuf);
             return 0;
         } else {
             perror("Incorrect port value");

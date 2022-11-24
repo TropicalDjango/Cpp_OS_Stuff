@@ -24,6 +24,9 @@
 #define BUFFER_SIZE 4
 #define MAX_CLIENTS 10
 #define MAX_HOSTNAME 20
+#define MAX_NAME 14
+#define MAX_PID 6
+
 using namespace std;
 
 int port;
@@ -32,7 +35,7 @@ int port;
 int trans_n = 0;
 
 // if the output of server true goes to terminal, false to log file
-const bool print = false;
+const bool print = true;
 const int pid = getpid();
 const clock_t start_time = clock();
 
@@ -263,8 +266,15 @@ int main(int argc, char** argv) {
     char hostname[MAX_HOSTNAME];
     if(argc == 2) {
         port = atoi(argv[1]);
-        gethostname(hostname, MAX_HOSTNAME);
+       
         if(!print) {
+            char name[MAX_NAME];
+            const char period = '.';
+
+            strcat(hostname,name);
+            strcat(hostname,&period);
+            strcat(hostname,to_string(pid).c_str());
+ 
             // redirect output to logfile
             std::ofstream out(hostname + '.' + char(pid)); 
             // std::streambuf* coutbuf = std::cout.rdbuf();
