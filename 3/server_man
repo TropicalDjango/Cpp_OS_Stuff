@@ -1,7 +1,6 @@
 ." This is the manual page for the server
 .TH server 7 "Nov 2022" "version 1.0" 
 
-
 ." This is the name section
 .SH NAME
 server - the server side for Assignment 3 of CMPUT 379 - Fall 2022
@@ -9,19 +8,44 @@ server - the server side for Assignment 3 of CMPUT 379 - Fall 2022
 .B server [port]
 .PP
 .B port 
-is the port mumber to listen on
-
+is the port number to listen for client on
 
 ." This is the description section
 .SH DESCRIPTION
-.B server
-runs a server that listens on the specified port number for clients 
-to connect, creates a seperate thread for each new client, and executes the
-client commands.
+
+server waits for any socket activity using status() with timeout of 30 seconds.
+
+If status() returns a timeout, server will close all sockets, print summary info
+and exit.
+.B (1)
+
+If status() returns error, server will exit with error.
+
+If status() returns server socket activity, server will try to connect to any
+available client sockets and will add its socket id and name to client_socket and
+client_name respectivly
+
+if status() returns client socket acitivty, server will iterate through all
+client sockets and find the one that status() detected. 
+Afterwards, server will attempt to read the command from the client, if that 
+fails, the client disconnected and its socket is removed; its transaction 
+count and name persist.
+
+If command was read successfully, then server will read n for the command and
+execute Trans(n). Then servers sends the transaction number for the recieved
+command and prints all these actions to 
+.B STDOUT (2)
+
 
 ." This is the note section
+.SH NOTES
 .PP
-Note however that
-.B server "(1) has a timeout feature 
-in that if a client does not connect after a certain period of time, the program will exit without warning. It also requires seperate clients in order to run properly so clients need to be made prior to making the server.
 
+.B (1)
+server has a timeout of 30 seconds.
+
+.B (2)
+STDOUT gets redirected by the variable print. If print is true STDOUT is left
+alone, if false STDOUT gets redirected to a log file of name machinename.pid
+I assumed that server doesn't have a logfile since the description makes it seem 
+as though only client has a logfile.

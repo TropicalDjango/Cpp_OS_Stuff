@@ -17,9 +17,13 @@ clean:
 # This is for testing, I'm keeping it here for later
 # incase I forget
 
-ctest:
+1ctest:
 	make client
 	./client 8888 127.0.0.1 < input.txt
+
+2ctest:
+	make client
+	./client 8888 127.0.0.1 < in.txt
 
 stest:
 	make server

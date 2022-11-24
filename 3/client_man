@@ -1,7 +1,6 @@
 ." This is the manual page for the server
 .TH client 7 "Nov 2022" "version 1.0" 
 
-
 ." This is the name section
 .SH NAME
 client - the client side for Assignment 3 of CMPUT 379 - Fall 2022
@@ -12,24 +11,42 @@ client - the client side for Assignment 3 of CMPUT 379 - Fall 2022
 
 .PP
 .I port 
-is the port mumber to connect with
+is the server binded port mumber to connect with
 
 .PP
 .I ip-address
-is the ip address that the client will connect to which is where the server is
-located
+is the ip address that the client will connect to which is where the server
+port and respective server socket is binded
 
 ." This is the description section
 .SH DESCRIPTION
 .B client
 reads input from stdin as a sequence of T<n> & S<N> commands, connects to the
-port number at the specfied ip address, and sends those commands to that port
-for the server to listen to.
+port number at the specfied ip address, and sends T<n> commands to that port
+for the server to listen to. 
+
+When first connecting, the client will send a 20 Byte Hostname for the server in
+the form of machinename.pid, then it starts to parse the input from file.
+
+The client will run Sleep(n) if a S<n> is encountered; the server when 
+recieving T<n> from client will run Trans(n). After client sends a T<n> to 
+server, it waits to hear confirmation as an integer which is the transaction 
+number. 
+
+The client prints all of these actions to stdout
+.B (1).
+When the client reaches end of input, it will print total transactions sent to
+server and exit.
 
 ." This is the note section
+.SH NOTES
 .PP
-Note however that
-.B client "(1) autoexits when input stops 
-in that if a client does not recieve input within a certain timeframe, it will
-exit automatically and without warning
+client autoexits when input stops in that if a client does not recieve input 
+within a certain timeframe, it will exit without warning
 
+.B (1)
+client has a print variable when true doesn't effect stdout, when false
+redirects stdout to a logfile named machine.pid
+
+.B client will exit if the server isn't already running
+, so make sure to run server first.

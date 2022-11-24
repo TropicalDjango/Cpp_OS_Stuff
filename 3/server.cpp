@@ -34,7 +34,7 @@ int port;
 // number of transactions
 int trans_n = 0;
 
-// if the output of server true goes to terminal, false to log file
+// true output goes to terminal, false goes to log file
 const bool print = true;
 const int pid = getpid();
 const clock_t start_time = clock();
@@ -45,14 +45,18 @@ char client_name[MAX_CLIENTS][MAX_HOSTNAME];
 // transactions for each client
 int trans_client[MAX_CLIENTS];
 
-
+/**
+ *  server_end() is called when the server timesout and displays
+ *  all relevent info for the server summary
+ */
 void server_end()
 {
     clock_t stop_time = clock();
     double lifetime = double(stop_time - start_time)/CLOCKS_PER_SEC;
 
-    cout << "SUMMARY" << endl;
-
+    cout << endl << "SUMMARY" << endl;
+    
+    // output client transaction and name if client name exists
     for(int ii = 0; 
         ii < MAX_CLIENTS && client_name[ii][0] != '\0'; 
         ii++)
@@ -69,7 +73,15 @@ void server_end()
 }
 
 
-
+/**
+ *  server_log() outputs one of the transaction lines in the log
+ *  depending on the provided arguments
+ *
+ *      @param  cmd             the action to print {'T','D'}
+ *      @param  n               the number provided to Trans from client
+ *      @param  client_index    the position of client in the 
+ *                              client_socket[] array
+ */
 void server_log(char cmd, int n, int client_index) 
 {
     auto epox = time(nullptr);
@@ -83,6 +95,18 @@ void server_log(char cmd, int n, int client_index)
     }
     cout << "from " << client_name[client_index] << endl;
 }
+
+/**
+ *  service is the main loop for the server. It is blocked by status()
+ *  until an action on any socket is detected. 
+ *
+ *  Then it switches the result to find if timeout occured, 
+ *  an error, or any socket activity. 
+ *  
+ *  There is server socket activity (connection request) or client socket.
+ *  Client socket can either be disconnect or communication.
+ *
+ */
 
 void sservice(int server_fd, int* client_socket, int addrlen,
               struct timeval timeout, struct sockaddr_in address) 
@@ -107,15 +131,15 @@ void sservice(int server_fd, int* client_socket, int addrlen,
             if(client_socket[ii] > max_sock)
                 max_sock = client_socket[ii];
         }
-        // wait for changes in any of the sockets
-        int file_stat = select(max_sock + 1, 
-                                &rfds, NULL, NULL, &timeout);
-        switch(file_stat) 
+
+        // wait for changes in any of the sockets with timeout 30s
+        int file_stat = select(max_sock + 1, &rfds, NULL, NULL, &timeout);
+        switch(file_stat)
         {
             // Timeout
             case(0):
             {
-                // close all sockets and exit
+                // close all sockets and run server_end() to print summary
                 close(server_fd);
                 for(int ii = 0; ii < MAX_CLIENTS; ii++)
                 {
@@ -137,7 +161,7 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                 if(FD_ISSET(server_fd, &rfds)) 
                 {
                     int new_socket = 0;
-                    // Connection to socket failed
+                    // connect to new client
                     if((new_socket = accept(server_fd,
                                     (struct sockaddr *)&address, 
                                     (socklen_t *)&addrlen)) < 0) 
@@ -145,15 +169,15 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                         perror("accept fail");
                         exit(EXIT_FAILURE);
                     }
-                    // add new socket to client_sockets
+                    // add new socket to client_socket[]
                     for(int ii = 0; ii < MAX_CLIENTS; ii++) 
                     {
+                        // if empty spot is found
                         if(client_socket[ii]==0) 
                         {
                             client_socket[ii] = new_socket;
                             // get clientname and add to client_name[][]
-                            read(new_socket, client_name[ii], 
-                                    MAX_HOSTNAME);
+                            read(new_socket, client_name[ii], MAX_HOSTNAME);
                             cout << client_name[ii] << endl;
                             break;
                         }
@@ -167,10 +191,10 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                     int cmd_n = 0;
                     if(FD_ISSET(client_socket[ii], &rfds))
                     {
-                        // client disconnected
                         int cmd_read;
+                        // client disconnected, try reading command into cmd
                         if((cmd_read = read(client_socket[ii], 
-                                       &cmd, sizeof(char)) == 0))
+                                        &cmd, sizeof(char)) == 0))
                         {
                             // get client name
                             getpeername(client_socket[ii], 
@@ -186,8 +210,9 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                         else 
                         {
 
+                            // read number from client, increment transaction
+                            // count, send transaction number and output
                             read(client_socket[ii], &cmd_n, sizeof(int));
-                            trans_n++;
                             server_log(cmd, cmd_n, ii);
 
                             if(cmd == 'T') {
@@ -196,9 +221,7 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                                 trans_n++;
                             }
                             server_log('D',trans_n,ii);
-                            send(client_socket[ii], 
-                                 &trans_n, sizeof(trans_n), 0);
-                            // FD_ZERO(&rfds);
+                            send(client_socket[ii], &trans_n, sizeof(trans_n), 0);
                         }
                     }
                 }
@@ -206,7 +229,9 @@ void sservice(int server_fd, int* client_socket, int addrlen,
         }   
     }
 }
-
+/**
+ *  Server initalizes the server socket and client sockets
+ */
 void server() {
     struct sockaddr_in address;
     int server_fd, op = 1, 
@@ -239,7 +264,7 @@ void server() {
     
     // Setting up the timeout for 30 seconds
     struct timeval timeout;
-    timeout.tv_sec = 10;
+    timeout.tv_sec = 30;
     timeout.tv_usec = 0;
     
     // Binding socket to address
@@ -256,8 +281,7 @@ void server() {
     }
 
     // After first client attempts connection
-    sservice(server_fd, &client_socket[0], addrlen,
-                   timeout, address);
+    sservice(server_fd, &client_socket[0], addrlen, timeout, address);
 }
                 
                 
@@ -277,11 +301,18 @@ int main(int argc, char** argv) {
  
             // redirect output to logfile
             std::ofstream out(hostname + '.' + char(pid)); 
-            // std::streambuf* coutbuf = std::cout.rdbuf();
+            std::streambuf* coutbuf = std::cout.rdbuf();
             std::cout.rdbuf(out.rdbuf());
+            
+            server();
+
+            // restore stdout
+            cout.rdbuf(coutbuf);
+            return 0;
         }
         if(port >= 5000 || port <= 64000) {
             server();
+            return 0;
         } else {
             perror("Incorrect port value, must be between 5000 and 64000");
         }
