@@ -8,7 +8,7 @@
 #include <iostream>
 #include <bits/stdc++.h>
 
-#include "tands.cpp"
+#include "tands.h"
 
 #define MAX_BUFFER_SIZE 2
 #define MAX_HOSTNAME 20
@@ -16,9 +16,10 @@ using namespace std;
 
 int PORT;
 char* ip_add;
-char* hostname;
+char hostname[MAX_HOSTNAME];
 int pid = getpid();
 int transaction = 0;
+bool print = true;
 
 void client_log(char cmd, int n) 
 {
@@ -26,10 +27,10 @@ void client_log(char cmd, int n)
     cout << epox << ": ";
     if(cmd == 'D') {
         cout << "Recv " << "(" << 
-                "D  "<< to_string(n) << ")" << endl;  
+                "D  "<< n << ")" << endl;  
     } else {
          cout << "Send " << "(" << 
-                "T  "<< to_string(n) << ")" << endl;  
+                "T  "<< n << ")" << endl;  
     }
 }
 
@@ -37,12 +38,17 @@ void client() {
     int sock = 0, sock_fd;
     struct sockaddr_in saddr;
     char buffer[MAX_BUFFER_SIZE];
+    
     if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("client socket");
         exit(EXIT_FAILURE);
     }
     saddr.sin_family = AF_INET;
     saddr.sin_port = htons(PORT);
+
+    cout << "Using port " << PORT << endl;
+    cout << "Using server address " << ip_add << endl;
+    cout << "Host " << hostname << endl;
 
     if(inet_pton(AF_INET, ip_add, &saddr.sin_addr) <= 0) {
         perror("IPv conversion");
@@ -54,6 +60,7 @@ void client() {
         perror("connect");
         exit(EXIT_FAILURE);
     }
+    send(sock, hostname, MAX_HOSTNAME, 0);
     while(cin.getline(buffer, MAX_BUFFER_SIZE)) 
     {
         int cmd_n;
@@ -80,16 +87,16 @@ void client() {
 }
 
 int main(int argc, char** argv) {
-    if(argc == 3) {
+    if(argc > 2) {
         PORT = atoi(argv[1]);
         ip_add = argv[2];
-        gethostname(hostname, MAX_HOSTNAME +1);
-
-        // redirect output to logfile
-        std::ofstream out(hostname + '.' + to_string(pid)); 
-        // std::streambuf* coutbuf = std::cout.rdbuf();
-        std::cout.rdbuf(out.rdbuf());
-
+        gethostname(hostname, MAX_HOSTNAME);
+        if(!print) {
+            // redirect output to logfile
+            std::ofstream out(hostname + '.' + to_string(pid)); 
+            // std::streambuf* coutbuf = std::cout.rdbuf();
+            std::cout.rdbuf(out.rdbuf());
+        }
         if(PORT >= 5000 || PORT <= 64000) {
             client();
         } else {

@@ -1,21 +1,14 @@
 CC = @g++
-# I'm not sure if I need to remove -g or not
-CFLAGS = -O -pedantic -static -pthread -I.
-HEADERS = server.h client.h tands.h
+CFLAGS = -g -pedantic -static -pthread -I.
+HEADER = tands.h
 DEPS = server.o client.o
 
-# all .o files are dependant on all .cpp files
-# and all .h
-%.o: %.cpp %.h
-	$(CC) -c -o $@ $< $(CFLAGS)
+client: client.cpp $(HEADER)
+	$(CC)  -o client client.cpp tands.h $(CFLAGS) 
 
-# goto $.o for .o files
+server: server.cpp $(HEADER)
+	$(CC) -o server server.cpp tands.h $(CFLAGS) 
 
-client: $(DEPS) 
-	$(CC) client.o -o client $(CFLAGS)
-
-server: $(DEPS)
-	$(CC) server.o -o server $(CFLAGS)
 clean:
 	@rm -f *.o client server *.log
 	@clear
@@ -23,7 +16,15 @@ clean:
 # This is for testing, I'm keeping it here for later
 # incase I forget
 
-test:
-	@ make
-	@ ./prodcon 3 1 < input.txt
-	@ cat prodcon.1.log
+ctest:
+	make client
+	./client 8888 127.0.0.1
+
+stest:
+	make server
+	./server 8888
+
+
+
+
+
