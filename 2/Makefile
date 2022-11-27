@@ -1,6 +1,6 @@
-CC = @g++
+CC = g++
 # I'm not sure if I need to remove -g or not
-CFLAGS = -g -pedantic -static -pthread -I.
+CFLAGS = -O
 HEADERS = threader.h consumer.h producer.h tands.h extern.h
 DEPS = threader.o consumer.o producer.o tands.o
 

@@ -1,6 +1,6 @@
 CC = @g++
 # I'm not sure if I need to remove -g or not
-CFLAGS = -g -pedantic -static -I.
+CFLAGS = -O 
 HEADERS = shell379.h
 DEPS = shell379.o
 

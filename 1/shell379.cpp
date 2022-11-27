@@ -27,6 +27,7 @@ using namespace std;
 		char state: 'S' for suspended 'R' for running
 		string cmd: the inital command for this child 
 */
+
 class Process
 {
 	public:
@@ -148,12 +149,11 @@ void jobs()
 	char buffer[LINE_LENGTH*MAX_PT_ENTRIES];
 	string buf_str[sizeof(buffer)];
 	char* argv[] = {(char*)"ps",(char*)"-o",(char*)"pid,cputime",NULL};
-	int id = 0;
-	int fd[2];
-	int status;
-	int run_total = 0;
-	bool first_run = true;	// need this to print top header for active processes
-	int i = 0;
+	
+  int id = 0, fd[2], status, run_total = 0, ii = 0;
+	
+  bool first_run = true;	// need this to print top header for active processes
+	
 	
 	cout << "Running processes:\n";
 	if(process_cb.size > 0) {	
@@ -203,15 +203,15 @@ void jobs()
 					}
 					selProcess = pindex->second;
 					
-					cout << to_string(i) << ": " << time << " ";
+					cout << to_string(ii) << ": " << time << " ";
 					cout << selProcess.state << " ";
 					
 					ss >> time;
 					
 					// return seconds from child and remove leading zero
-					cout << to_string(stoi(time.substr(time.length()-2,2))); 
+					cout << to_string(stoi(time.substr(time.length()-1,2))); 
 					cout << "   " << selProcess.cmd << " \n";
-					i++;
+					ii++;
 				}
 			}
 			process_cb.run_proc.clear();
@@ -225,12 +225,14 @@ void jobs()
 	print_total_time(1);
 	return;
 }
+
 /*
 	my_kill(int) takes a pid and sends a SIGKILL to the process
 	with that ID. 
 
 	if successful then PCB is updated
 */
+
 void my_kill(int pid)
 {
 	if(kill(pid,SIGKILL) != 0) {
@@ -241,12 +243,14 @@ void my_kill(int pid)
 		return;
 	}
 }
+
 /*
 	resume(int) takes a pid and sends a SIGCONT to the process
 	with that ID. 
 
 	if successful then process.state in PCB is updated to 'R'
 */
+
 void resume(int pid)
 {
 	if(kill(pid, SIGCONT) != 0) {
@@ -257,12 +261,14 @@ void resume(int pid)
 		return;
 	}
 }
+
 /*
 	resume(int) takes a pid and sends a SIGSTOP to the process
 	with that ID. 
 
 	if successful then process.state in PCB is updated to 'S'
 */
+
 void suspend(int pid)
 {
 	if(kill(pid, SIGSTOP) != 0) {
@@ -274,6 +280,7 @@ void suspend(int pid)
 	}
 
 }
+
 /*
 	my_wait(int) takes a pid and stops the calling process until
 	the processs with that id has exited or is currently suspended
@@ -281,6 +288,7 @@ void suspend(int pid)
 
 	if successful then the calling process continues running
 */
+
 int my_wait(int pid)
 {
 	int status;
@@ -299,7 +307,7 @@ int my_wait(int pid)
 			return 0;
 		// If child has been suspended
 		} else if (WSTOPSIG(status)){
-			return 1;
+      return 1;
 		}
 	}
 }
@@ -310,6 +318,7 @@ int my_wait(int pid)
 
 	fin_bool and fout_bool exist so the parent closes those files
 */
+
 void execute(string arg)
 {
 	int i = 0, fd_in, fd_out;
@@ -394,6 +403,7 @@ void redirect()
 	string arg;
 	int pid;
 
+  std::cout << std::endl << "-> ";
 	getline(cin,user);
 
 	stringstream in(user);
