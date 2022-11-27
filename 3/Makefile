@@ -1,5 +1,5 @@
 CC = @g++
-CFLAGS = -O -pedantic -static -pthread -I.
+CFLAGS = -O 
 HEADER = tands.h
 DEPS = server.o client.o
 
@@ -17,14 +17,14 @@ clean:
 # This is for testing, I'm keeping it here for later
 # incase I forget
 
-1ctest:
+ctest:
 	make client
-	./client 8888 127.0.0.1 < input.txt
-
-2ctest:
-	make client
-	./client 8888 127.0.0.1 < in.txt
-
+	./client 8888 127.0.0.1 < in1.txt &
+	./client 8888 127.0.0.1 < in1.txt &
+	./client 8888 127.0.0.1 < in1.txt &
+	./client 8888 127.0.0.1 < in2.txt &	
+	./client 8888 127.0.0.1 < in2.txt &
+	./client 8888 127.0.0.1 < in2.txt &
 stest:
 	make server
 	./server 8888

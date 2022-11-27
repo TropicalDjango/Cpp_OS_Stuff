@@ -54,22 +54,19 @@ void server_end()
     clock_t stop_time = clock();
     double lifetime = double(stop_time - start_time)/CLOCKS_PER_SEC;
 
-    cout << endl << "SUMMARY" << endl;
+   fprintf(stdout, "SUMMARY:\n"); 
     
     // output client transaction and name if client name exists
     for(int ii = 0; 
         ii < MAX_CLIENTS && client_name[ii][0] != '\0'; 
         ii++)
     {
-        cout << "   " << trans_client[ii] << " transactions"
-             << " from " << client_name[ii] << endl;
+        fprintf(stdout, "   %3d transactions from %10s\n", trans_client[ii], client_name[ii]);
     }
 
     double avg_trans = trans_n/lifetime;
-    
-    cout << fixed << setprecision(2) 
-         << avg_trans << " transactions/sec ("
-         << trans_n << "/" << lifetime << ")" << endl;
+   
+    fprintf(stdout, "%g transactions/second (%i/%g)\n", avg_trans, trans_n, lifetime);
 }
 
 
@@ -85,15 +82,13 @@ void server_end()
 void server_log(char cmd, int n, int client_index) 
 {
     auto epox = time(nullptr);
-    
-    cout << epox << ": #  " << trans_n << " (";
-    
+
+    // I assume large individual fprintf calls perform better than smaller seperate fprintfs
     if(cmd == 'D') {
-        cout << "DONE) ";
+      fprintf(stdout, "%d: #%3d (DONE) from %10s\n", epox, trans_n, client_name[client_index]);
     } else if(cmd == 'T') {
-        cout << "T  " << n << ") ";
+      fprintf(stdout, "%d: #%3d (T%3d) from %10s\n", epox, trans_n, n, client_name[client_index]);
     }
-    cout << "from " << client_name[client_index] << endl;
 }
 
 /**
@@ -117,7 +112,8 @@ void sservice(int server_fd, int* client_socket, int addrlen,
         
         // clear fd set
         FD_ZERO(&rfds);
-        
+        // reset timer
+        timeout.tv_sec = 10;   
         // add server socket to set
         FD_SET(server_fd, &rfds);
         int max_sock = server_fd;
@@ -178,7 +174,6 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                             client_socket[ii] = new_socket;
                             // get clientname and add to client_name[][]
                             read(new_socket, client_name[ii], MAX_HOSTNAME);
-                            cout << client_name[ii] << endl;
                             break;
                         }
                     }
@@ -203,8 +198,8 @@ void sservice(int server_fd, int* client_socket, int addrlen,
                             // close client socket
                             close(client_socket[ii]);
                             client_socket[ii] = 0;
-                            cout << "Client " << client_name[ii] 
-                                 << " has disconnected" << endl;
+                            
+                            // fprintf(stdout, "Client %10s has disconnected\n", client_name[ii]);
                         }
                         // client message
                         else 
@@ -260,7 +255,7 @@ void server() {
     address.sin_addr.s_addr = inet_addr("127.0.0.1");
     address.sin_port = htons(port);
 
-    cout << "Using port " << port << endl;
+    fprintf(stdout, "Using port %i", port);
     
     // Setting up the timeout for 30 seconds
     struct timeval timeout;
