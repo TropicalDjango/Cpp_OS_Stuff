@@ -54,7 +54,7 @@ void server_end()
     clock_t stop_time = clock();
     double lifetime = double(stop_time - start_time)/CLOCKS_PER_SEC;
 
-   fprintf(stdout, "SUMMARY:\n"); 
+   fprintf(stdout, "\nSUMMARY:\n"); 
     
     // output client transaction and name if client name exists
     for(int ii = 0; 
@@ -66,7 +66,7 @@ void server_end()
 
     double avg_trans = trans_n/lifetime;
    
-    fprintf(stdout, "%g transactions/second (%i/%g)\n", avg_trans, trans_n, lifetime);
+    fprintf(stdout, "%.2f transactions/second (%i/%g)\n", avg_trans, trans_n, lifetime);
 }
 
 
